@@ -1,0 +1,35 @@
+[tasks.format]
+command = "cargo"
+args = ["fmt", "--", "--emit=files"]
+
+[tasks.lint]
+command = "cargo"
+args = ["clippy", "--all-targets", "--all-features", "--", "-D", "warnings"]
+
+[tasks.check]
+command = "cargo"
+args = ["check"]
+
+[tasks.test]
+command = "cargo"
+args = ["test"]
+
+[tasks.run]
+command = "cargo"
+args = ["run"]
+
+[tasks.build]
+command = "cargo"
+args = ["build"]
+
+[tasks.clean]
+command = "cargo"
+args = ["clean"]
+
+[tasks.all]
+dependencies = [
+    "format",
+    "lint",
+    "build",
+    "test"
+]
