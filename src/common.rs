@@ -31,16 +31,18 @@ pub enum ApiError {
 
 impl IntoResponse for ApiError {
   fn into_response(self) -> axum::response::Response {
-    match self {
+    let (status, message) = match self {
       Self::BadRequest(message) => (
         StatusCode::BAD_REQUEST,
-        Json(if message.is_empty() {constants::BAD_REQUEST.to_string()} else {message})).into_response(),
+        if message.is_empty() {constants::BAD_REQUEST.to_string()} else {message}),
       Self::NotFound(message) => (
         StatusCode::NOT_FOUND,
-        Json(if message.is_empty() {constants::NOT_FOUND.to_string()} else {message})).into_response(),
+        if message.is_empty() {constants::NOT_FOUND.to_string()} else {message}),
       Self::InternalServiceError(message) => (
         StatusCode::INTERNAL_SERVER_ERROR,
-        Json(if message.is_empty() {constants::INTERNAL_SERVER_ERROR.to_string()} else {message})).into_response()
-    }
+        if message.is_empty() {constants::INTERNAL_SERVER_ERROR.to_string()} else {message})
+    };
+
+    (status, Json(message)).into_response()
   }
 }
