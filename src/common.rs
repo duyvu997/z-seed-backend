@@ -1,7 +1,7 @@
 use axum::{http::StatusCode, response::IntoResponse, Json};
 use serde::Serialize;
 
-use crate::constance;
+use crate::constants;
 
 #[derive(Serialize)]
 pub struct Data<T> {
@@ -34,13 +34,13 @@ impl IntoResponse for ApiError {
     match self {
       Self::BadRequest(message) => (
         StatusCode::BAD_REQUEST,
-        Json(if message.is_empty() {constance::BAD_REQUEST.to_string()} else {message})).into_response(),
+        Json(if message.is_empty() {constants::BAD_REQUEST.to_string()} else {message})).into_response(),
       Self::NotFound(message) => (
         StatusCode::NOT_FOUND,
-        Json(if message.is_empty() {constance::NOT_FOUND.to_string()} else {message})).into_response(),
+        Json(if message.is_empty() {constants::NOT_FOUND.to_string()} else {message})).into_response(),
       Self::InternalServiceError(message) => (
         StatusCode::INTERNAL_SERVER_ERROR,
-        Json(if message.is_empty() {constance::INTERNAL_SERVER_ERROR.to_string()} else {message})).into_response()
+        Json(if message.is_empty() {constants::INTERNAL_SERVER_ERROR.to_string()} else {message})).into_response()
     }
   }
 }

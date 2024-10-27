@@ -1,7 +1,7 @@
 pub mod configs;
 pub mod db;
 pub mod common;
-pub mod constance;
+pub mod constants;
 
 pub mod middlewares;
 
@@ -14,7 +14,7 @@ pub mod routes {
 }
 
 pub mod services {
-  pub mod user_serivce;
+  pub mod user_service;
 }
 
 pub mod entities {

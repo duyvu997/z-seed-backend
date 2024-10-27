@@ -3,7 +3,7 @@ use axum::{extract::{Path, State}, Json};
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-use crate::{common::{ApiError, ApiResponse, Data}, constance, dtos::user_dto::CreateRequest, entities::user::User};
+use crate::{common::{ApiError, ApiResponse, Data}, constants, dtos::user_dto::CreateRequest, entities::user::User};
 
 pub async fn get_user(State(data): State<Arc<Pool<Postgres>>>, Path(id): Path<String>) -> Result<ApiResponse<User>, ApiError> {
   let result = sqlx::query_as::<_,User>("SELECT * FROM users WHERE id = $1")
@@ -12,7 +12,7 @@ pub async fn get_user(State(data): State<Arc<Pool<Postgres>>>, Path(id): Path<St
     .await;
 
   match result {
-    Ok(data) => Ok(ApiResponse::Ok(Data {data, message: constance::SUCCESS.to_string()})),
+    Ok(data) => Ok(ApiResponse::Ok(Data {data, message: constants::SUCCESS.to_string()})),
     Err(err) => Err(ApiError::NotFound(err.to_string()))
   }
 }
@@ -35,7 +35,7 @@ pub async fn create(State(data): State<Arc<Pool<Postgres>>>, Json(user): Json<Cr
     .await;
 
   match result {
-    Ok(data) => Ok(ApiResponse::Created(Data {data, message: constance::CREATED.to_string()})),
+    Ok(data) => Ok(ApiResponse::Created(Data {data, message: constants::CREATED.to_string()})),
     Err(err) => Err(ApiError::BadRequest(err.to_string()))
   }
 }
