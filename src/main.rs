@@ -1,6 +1,6 @@
-use std::sync::Arc;
 use axum::{middleware::from_fn, routing::get, Router};
 use dotenv::dotenv;
+use std::sync::Arc;
 use tracing::info;
 
 use z_seed_backend::{configs::EnvDev, db, middlewares::error_handler, routes::user_route};
@@ -24,7 +24,7 @@ async fn main() {
 
   let app = Router::new()
     // `GET /` goes to `root`‘
-    .route("/", get(|| async {"Hello, World!"}))
+    .route("/", get(|| async { "Hello, World!" }))
     .nest("/api/users", user_route::route(Arc::new(pool)))
     .layer(from_fn(error_handler));
 
