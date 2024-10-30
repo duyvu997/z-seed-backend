@@ -26,6 +26,13 @@ args = ["build"]
 command = "cargo"
 args = ["clean"]
 
+[tasks.format_run]
+description = "Formats the code and then runs the project"
+dependencies = [
+    "format",
+    "run"
+]
+
 [tasks.all]
 dependencies = [
     "format",
