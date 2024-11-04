@@ -1,9 +1,10 @@
 use axum::{http::StatusCode, response::IntoResponse, Json};
 use serde::Serialize;
+use utoipa::ToSchema;
 
 use crate::constants;
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct Data<T> {
   pub data: T,
   pub message: String,
@@ -35,12 +36,14 @@ pub enum ApiError {
 impl IntoResponse for ApiError {
   fn into_response(self) -> axum::response::Response {
     let (status, message) = match self {
-      Self::BadRequest(message) => {
-        (StatusCode::BAD_REQUEST, if message.is_empty() { constants::BAD_REQUEST.to_string() } else { message })
-      },
-      Self::NotFound(message) => {
-        (StatusCode::NOT_FOUND, if message.is_empty() { constants::NOT_FOUND.to_string() } else { message })
-      },
+      Self::BadRequest(message) => (
+        StatusCode::BAD_REQUEST,
+        if message.is_empty() { constants::BAD_REQUEST.to_string() } else { message },
+      ),
+      Self::NotFound(message) => (
+        StatusCode::NOT_FOUND,
+        if message.is_empty() { constants::NOT_FOUND.to_string() } else { message },
+      ),
       Self::InternalServiceError(message) => (
         StatusCode::INTERNAL_SERVER_ERROR,
         if message.is_empty() { constants::INTERNAL_SERVER_ERROR.to_string() } else { message },

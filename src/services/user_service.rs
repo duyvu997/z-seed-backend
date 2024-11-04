@@ -9,11 +9,21 @@ use uuid::Uuid;
 use crate::{
   common::{ApiError, ApiResponse, Data},
   constants,
-  dtos::user_dto::CreateRequest,
+  dtos::user_dto::{CreateRequest, UserDto},
   entities::user::User,
 };
 
-pub async fn get_user(
+#[utoipa::path(
+  get,
+  path = "/api/users/{id}",
+  params(
+    ("id" = &str, Path, description = "User ID")
+  ),
+  responses(
+    (status = 200, description = "Get user by id", body = Data<UserDto>)
+  )
+)]
+pub async fn get_by_id(
   State(data): State<Arc<Pool<Postgres>>>,
   Path(id): Path<String>,
 ) -> Result<ApiResponse<User>, ApiError> {
@@ -22,7 +32,10 @@ pub async fn get_user(
     return Err(ApiError::BadRequest("Invalid UUID format".to_string()));
   }
 
-  let result = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = $1").bind(&id).fetch_one(&*data).await;
+  let result = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = $1")
+    .bind(&id)
+    .fetch_one(&*data)
+    .await;
 
   match result {
     Ok(data) => Ok(ApiResponse::Ok(Data { data, message: constants::SUCCESS.to_string() })),
@@ -31,6 +44,14 @@ pub async fn get_user(
   }
 }
 
+#[utoipa::path(
+  post,
+  path = "/api/users",
+  request_body = CreateRequest,
+  responses(
+    (status = 200, description = "Create user", body = Data<UserDto>)
+  )
+)]
 pub async fn create(
   State(data): State<Arc<Pool<Postgres>>>,
   Json(user): Json<CreateRequest>,
@@ -46,7 +67,10 @@ pub async fn create(
     return Err(ApiError::InternalServiceError(err.to_string()));
   }
 
-  let result = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = $1").bind(&id).fetch_one(&*data).await;
+  let result = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = $1")
+    .bind(&id)
+    .fetch_one(&*data)
+    .await;
 
   match result {
     Ok(data) => Ok(ApiResponse::Created(Data { data, message: constants::CREATED.to_string() })),
