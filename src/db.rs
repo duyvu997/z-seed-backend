@@ -1,9 +1,10 @@
-use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use diesel::{
+  r2d2::{ConnectionManager, Pool},
+  PgConnection,
+};
 
-pub async fn intialized_db(dsn: &str, max_conns: u32) -> Pool<Postgres> {
-  let db = PgPoolOptions::new().max_connections(max_conns).connect(dsn).await.unwrap();
+pub async fn intialized_db(dsn: &str, max_conns: u32) -> Pool<ConnectionManager<PgConnection>> {
+  let manager = ConnectionManager::<PgConnection>::new(dsn);
 
-  sqlx::migrate!().run(&db).await.expect("Cannot run migrations");
-
-  db
+  Pool::builder().max_size(max_conns).build(manager).unwrap()
 }

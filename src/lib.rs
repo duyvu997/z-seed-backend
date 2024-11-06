@@ -3,6 +3,7 @@ pub mod common;
 pub mod configs;
 pub mod constants;
 pub mod db;
+pub mod schema;
 
 pub mod middlewares;
 

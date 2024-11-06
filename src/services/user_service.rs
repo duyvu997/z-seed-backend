@@ -2,7 +2,10 @@ use axum::{
   extract::{Path, State},
   Json,
 };
-use sqlx::{Pool, Postgres};
+use diesel::{
+  r2d2::{ConnectionManager, Pool},
+  PgConnection, QueryDsl, RunQueryDsl,
+};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -11,6 +14,7 @@ use crate::{
   constants,
   dtos::user_dto::{CreateRequest, UserDto},
   entities::user::User,
+  schema::users,
 };
 
 #[utoipa::path(
@@ -24,7 +28,7 @@ use crate::{
   )
 )]
 pub async fn get_by_id(
-  State(data): State<Arc<Pool<Postgres>>>,
+  State(pool): State<Arc<Pool<ConnectionManager<PgConnection>>>>,
   Path(id): Path<String>,
 ) -> Result<ApiResponse<User>, ApiError> {
   // Validate UUID format
@@ -32,14 +36,11 @@ pub async fn get_by_id(
     return Err(ApiError::BadRequest("Invalid UUID format".to_string()));
   }
 
-  let result = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = $1")
-    .bind(&id)
-    .fetch_one(&*data)
-    .await;
+  let mut conn = pool.get().unwrap();
+  let result = users::table.find(id).first::<User>(&mut conn);
 
   match result {
     Ok(data) => Ok(ApiResponse::Ok(Data { data, message: constants::SUCCESS.to_string() })),
-    Err(sqlx::Error::RowNotFound) => Err(ApiError::NotFound("User not found".to_string())),
     Err(err) => Err(ApiError::InternalServiceError(format!("Database error: {}", err))),
   }
 }
@@ -53,24 +54,21 @@ pub async fn get_by_id(
   )
 )]
 pub async fn create(
-  State(data): State<Arc<Pool<Postgres>>>,
+  State(pool): State<Arc<Pool<ConnectionManager<PgConnection>>>>,
   Json(user): Json<CreateRequest>,
 ) -> Result<ApiResponse<User>, ApiError> {
   let id = Uuid::new_v4().to_string();
-  let response = sqlx::query("INSERT INTO users (id, username) VALUES ($1, $2)")
-    .bind(&id)
-    .bind(&user.username)
-    .execute(&*data)
-    .await;
+  let mut conn = pool.get().unwrap();
+
+  let response = diesel::insert_into(users::table)
+    .values(User { id: id.clone(), username: user.username })
+    .get_result::<User>(&mut conn);
 
   if let Err(err) = response {
     return Err(ApiError::InternalServiceError(err.to_string()));
   }
 
-  let result = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = $1")
-    .bind(&id)
-    .fetch_one(&*data)
-    .await;
+  let result = users::table.find(id).first::<User>(&mut conn);
 
   match result {
     Ok(data) => Ok(ApiResponse::Created(Data { data, message: constants::CREATED.to_string() })),
